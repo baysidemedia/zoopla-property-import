@@ -1,0 +1,25 @@
+/*
+  Plugin Name: Import Zoopla UK Property Listings
+  Plugin URI: http://www.alanwheeler.co.uk
+  Description: Import listings from Zoopla.
+  Author: Alan Wheeler
+  Version: 1.00
+  Author URI: http://www.alanwheeler.co.uk
+  Text Domain: import-listings-zoopla
+  Domain Path: lang
+*/
+
+
+
+.button-primary.disabled {
+  opacity: 1 !important; 
+  cursor: not-allowed !important;
+}
+
+.response {
+  display: none;
+  border: 1px solid #777;
+  padding: 10px;
+  overflow: auto;
+  background: #fff;
+}
