@@ -1,5 +1,6 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+
 /*
   Plugin Name: Import Zoopla UK Property Listings
   Plugin URI: http://www.alanwheeler.co.uk
@@ -10,6 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
   Text Domain: import-listings-zoopla
   Domain Path: lang
 */
+
 include_once( 'do_import.php' );
 
 class Properties{
@@ -24,17 +26,23 @@ class Properties{
     }
 
 	public function __construct() {
-		add_action('init', array( $this, 'properties_post_type'), 0 );
-		add_action('admin_menu', array( $this, 'add_sub_menu') );
-		add_action('admin_init', array( $this, 'register_settings') );
-		add_action('admin_init', array( $this, 'admin_init') );
-		add_action('save_post', array( $this, 'save_details') );
-		add_action('admin_enqueue_scripts', array( $this, 'import_enqueue_css' ) );
-		add_action('admin_enqueue_scripts', array( $this, 'import_enqueue_script') );
-		add_filter('plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'action_links' ) );
+		add_action( 'init', array( $this, 'properties_post_type' ), 0 );
+		add_action( 'admin_menu', array( $this, 'add_sub_menu' ) );
+		add_action( 'admin_init', array( $this, 'register_settings' ) );
+		add_action( 'admin_init', array( $this, 'admin_init' ) );
+		add_action( 'save_post', array( $this, 'save_details' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'import_enqueue_css' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'import_enqueue_script' ) );
+		add_filter( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'action_links' ) );
+		add_filter( 'manage_posts_columns', array( $this, 'add_img_column') );
+		add_filter( 'manage_posts_custom_column', array( $this, 'manage_img_column' ), 20, 2);
+		add_filter( 'manage_posts_custom_column', array( $this, 'manage_price_column' ), 20, 2);
+		add_filter( 'manage_posts_custom_column', array( $this, 'manage_property_agent_column' ), 20, 2);
+		add_filter( 'manage_posts_custom_column', array( $this, 'manage_property_sale_type_column' ), 20, 2);
+		add_filter( 'manage_edit-property_sortable_columns', array( $this, 'manage_sortable_columns' ) );
 	}
 
-	function properties_post_type() {
+	public function properties_post_type() {
 
 		$labels = array( 
 	  		'name'               => __( 'Properties', 'text_domain' ),
@@ -76,29 +84,38 @@ class Properties{
 	}
 
 	 
-	function admin_init(){
-		add_meta_box('property-id', 'Property ID', array( $this, 'property_id'), 'property', 'normal', 'high');
-		add_meta_box('property-url', 'Property Url', array( $this, 'property_url'), 'property', 'normal', 'high');
-		add_meta_box('property-price', 'Property Price £', array( $this, 'property_price'), 'property', 'normal', 'high');
-		add_meta_box('property-agent', 'Marketed by', array( $this, 'property_agent'), 'property', 'normal', 'high');
-		add_meta_box('property-agent-phone', 'Agent Tel. No.', array( $this, 'property_agent_phone'), 'property', 'normal', 'high');
-		add_meta_box('property-agent-logo', 'Agent logo Url.', array( $this, 'property_agent_logo'), 'property', 'normal', 'high');
+	public function admin_init() {
+
+		add_meta_box( 'property-id', 'Property ID', array( $this, 'property_id'), 'property', 'normal', 'high' );
+		add_meta_box( 'property-url', 'Property Url', array( $this, 'property_url'), 'property', 'normal', 'high' );
+		add_meta_box( 'property-price', 'Property Price £', array( $this, 'property_price'), 'property', 'normal', 'high' );
+		add_meta_box( 'property-agent', 'Marketed by', array( $this, 'property_agent'), 'property', 'normal', 'high' );
+		add_meta_box( 'property-agent-phone', 'Agent Tel. No.', array( $this, 'property_agent_phone'), 'property', 'normal', 'high' );
+		add_meta_box( 'property-agent-logo', 'Agent logo Url.', array( $this, 'property_agent_logo'), 'property', 'normal', 'high' );
 		
 	}
 
-	function add_sub_menu() {
-		add_submenu_page( 'edit.php?post_type=property', 'Import Settings', 'Import Settings', 'manage_options', 'import-options', array( $this, 'import_options'), 6 ); 
+	public function add_sub_menu() {
+
+		add_submenu_page( 'edit.php?post_type=property', 'Import Settings', 'Import Settings', 'manage_options', 'import-options', array( $this, 'import_options' ), 6 ); 
+	
 	}
 
-	function import_enqueue_css() {
+	public function import_enqueue_css() {
+
 		wp_enqueue_style( 'import_enqueue_css', plugin_dir_url( __FILE__ ) . 'css/import_css.css' );
+	
 	}
-	function import_enqueue_script() {   
+
+	public function import_enqueue_script() { 
+
 	    wp_enqueue_script( 'import_enqueue_script', plugin_dir_url( __FILE__ ) . 'js/import_js.js' );
 	    wp_localize_script( 'import_enqueue_script', 'api_key', get_option('import_option_api_key') );
+	
 	}
 	
-	function register_settings(){
+	public function register_settings(){
+
 		$args = array(
             'type' => 'string',
             'default' => NULL,
@@ -127,10 +144,11 @@ class Properties{
 
 	}
 
-	function import_options() {
+	public function import_options() {
+
 		$properties_count = wp_count_posts( 'property' );
 		?>
-		<p><strong>You currently have <?php echo $properties_count->publish; ?> Property Listings.</strong></p>
+		<p><strong>You currently have <?php _e( $properties_count->publish ); ?> Property Listings</strong></p>
 		<div class="wrap" style="padding:5px 10px;background:#444;margin-left:0;">
 			<p style="margin:0;color:#fff;"><strong>Zoopla Property Import Options</strong></p>
 		</div>
@@ -141,140 +159,221 @@ class Properties{
                     <td>You can get your Zoopla Api Key <a href="https://developer.zoopla.co.uk/" target="_blank"><strong>here</strong></a></td>
                 </tr>
                 <tr valign="top"><th scope="row">Enter Api Key:</th>
-                    <td><input type="text" id="import_option_api_key" name="import_option_api_key" value="<?php echo get_option('import_option_api_key'); ?>" class="regular-text"/></td>
+                    <td><input type="text" id="import_option_api_key" name="import_option_api_key" value="<?php _e( get_option( 'import_option_api_key' ) ); ?>" class="regular-text"/></td>
                 </tr>
                 <tr valign="top"><th scope="row">Postcode:</th>
-                    <td><input type="text" name="import_option_postcode" value="<?php echo get_option('import_option_postcode'); ?>" class="regular-text"/></td>
+                    <td><input type="text" name="import_option_postcode" value="<?php _e( get_option( 'import_option_postcode' ) ); ?>" class="regular-text"/></td>
                 </tr>
                 <tr valign="top"><th scope="row">Postcode Radius:</th>
                     <td>
 	                    <select name="import_option_radius">
-						    <option value="5" <?php selected( get_option('import_option_radius'), 5 ); ?>>5 Miles</option>
-						    <option value="10" <?php selected( get_option('import_option_radius'), 10 ); ?>>10 Miles</option>
-						    <option value="20" <?php selected( get_option('import_option_radius'), 20 ); ?>>20 Miles</option>
-						    <option value="30" <?php selected( get_option('import_option_radius'), 30 ); ?>>30 Miles</option>
-						    <option value="40" <?php selected( get_option('import_option_radius'), 40 ); ?>>40 Miles</option>
+						    <option value="5" <?php selected( get_option( 'import_option_radius' ), 5 ); ?>>5 Miles</option>
+						    <option value="10" <?php selected( get_option( 'import_option_radius' ), 10 ); ?>>10 Miles</option>
+						    <option value="20" <?php selected( get_option( 'import_option_radius' ), 20 ); ?>>20 Miles</option>
+						    <option value="30" <?php selected( get_option( 'import_option_radius' ), 30 ); ?>>30 Miles</option>
+						    <option value="40" <?php selected( get_option( 'import_option_radius' ), 40 ); ?>>40 Miles</option>
 						</select>
 					</td>
                 </tr>
                 <tr valign="top"><th scope="row">No. of properties to import:</th>
                     <td>
 	                    <select name="import_option_number">
-						    <option value="10" <?php selected( get_option('import_option_number'), 10 ); ?>>10</option>
-						    <option value="20" <?php selected( get_option('import_option_number'), 20 ); ?>>20</option>
-						    <option value="30" <?php selected( get_option('import_option_number'), 30 ); ?>>30</option>
-						    <option value="40" <?php selected( get_option('import_option_number'), 40 ); ?>>40</option>
-						    <option value="50" <?php selected( get_option('import_option_number'), 50 ); ?>>50</option>
-						    <option value="60" <?php selected( get_option('import_option_number'), 60 ); ?>>60</option>
-						    <option value="70" <?php selected( get_option('import_option_number'), 70 ); ?>>70</option>
-						    <option value="80" <?php selected( get_option('import_option_number'), 80 ); ?>>80</option>
-						    <option value="90" <?php selected( get_option('import_option_number'), 90 ); ?>>90</option>
-						    <option value="100" <?php selected( get_option('import_option_number'), 100 ); ?>>100</option>
+						    <option value="10" <?php selected( get_option( 'import_option_number' ), 10 ); ?>>10</option>
+						    <option value="20" <?php selected( get_option( 'import_option_number' ), 20 ); ?>>20</option>
+						    <option value="30" <?php selected( get_option( 'import_option_number' ), 30 ); ?>>30</option>
+						    <option value="40" <?php selected( get_option( 'import_option_number' ), 40 ); ?>>40</option>
+						    <option value="50" <?php selected( get_option( 'import_option_number' ), 50 ); ?>>50</option>
+						    <option value="60" <?php selected( get_option( 'import_option_number' ), 60 ); ?>>60</option>
+						    <option value="70" <?php selected( get_option( 'import_option_number' ), 70 ); ?>>70</option>
+						    <option value="80" <?php selected( get_option( 'import_option_number' ), 80 ); ?>>80</option>
+						    <option value="90" <?php selected( get_option( 'import_option_number' ), 90 ); ?>>90</option>
+						    <option value="100" <?php selected( get_option( 'import_option_number' ), 100 ); ?>>100</option>
 						</select>
 					</td>
                 </tr>
                 <tr valign="top"><th scope="row">Property Marketing Type:</th>
                     <td>
 	                    <select name="import_option_sale_type">
-						    <option value="sale" <?php selected( get_option('import_option_sale_type'), 'sale' ); ?>>For Sale</option>
-						    <option value="rent" <?php selected( get_option('import_option_sale_type'), 'rent' ); ?>>To Let</option>
+						    <option value="sale" <?php selected( get_option( 'import_option_sale_type' ), 'sale' ); ?>>For Sale</option>
+						    <option value="rent" <?php selected( get_option( 'import_option_sale_type' ), 'rent' ); ?>>To Let</option>
 						</select>
 					</td>
                 </tr>
             </table>
             <p class="submit">
-                <input type="submit" id="save_changes" class="button-primary" value="<?php _e('Save Changes') ?>" />
+                <input type="submit" id="save_changes" class="button-primary" value="<?php _e( 'Save Changes' ) ?>" />
             </p>
         </form>
         <div class="wrap" style="padding:5px 10px;background:#444;margin-left:0;">
 			<p style="margin:0;color:#fff;"><strong>Zoopla Property Import</strong></p>
 		</div>
 		<p class="submit">
-            <button id="run_import" class="button-primary" /><?php _e('Run Import') ?></button>	
+            <button id="run_import" class="button-primary" /><?php _e( 'Run Import' ) ?></button>	
         </p>
         <div id="response" class="response wrap"></div>
 		<?php
 	}
 
-	function property_id(){
+	public function property_id() {
+
 		global $post;
 
 		$custom_post = get_post_custom($post->ID);
 		$property_id = $custom_post['property_id'][0];
 		?>
-		<input name="property_id" value="<?php echo $property_id; ?>" class="regular-text" />
+		<input name="property_id" value="<?php _e( $property_id ); ?>" class="regular-text" />
 		<?php
 	}
 
-	function property_url(){
+	public function property_url() {
+
 		global $post;
 
-		$custom_post = get_post_custom($post->ID);
+		$custom_post = get_post_custom( $post->ID );
 		$property_url = $custom_post['property_url'][0];
 		?>
-		<input name="property_url" value="<?php echo $property_url; ?>" class="regular-text code" />
+		<input name="property_url" value="<?php _e( $property_url ); ?>" class="regular-text code" />
 		<?php
 	}
 
-	function property_price(){
+	public function property_price() {
+
 		global $post;
 
-		$custom_post = get_post_custom($post->ID);
+		$custom_post = get_post_custom( $post->ID );
 		$property_price = $custom_post['property_price'][0];
 		?>
-		<input name="property_price" value="<?php echo $property_price; ?>" class="regular-text" />
+		<input name="property_price" value="<?php _e( $property_price ); ?>" class="regular-text" />
 		<?php
 	}
 
-	function property_agent(){
+	public function property_agent() {
+
 		global $post;
 
-		$custom_post = get_post_custom($post->ID);
+		$custom_post = get_post_custom( $post->ID );
 		$property_agent = $custom_post['property_agent'][0];
 		?>
-		<input name="property_agent" value="<?php echo $property_agent; ?>" class="regular-text" />
+		<input name="property_agent" value="<?php _e( $property_agent ); ?>" class="regular-text" />
 		<?php
 	}
 
-	function property_agent_phone(){
+	public function property_agent_phone() {
+
 		global $post;
 
-		$custom_post = get_post_custom($post->ID);
+		$custom_post = get_post_custom( $post->ID );
 		$property_agent_phone = $custom_post['property_agent_phone'][0];
 		?>
-		<input name="property_agent_phone" value="<?php echo $property_agent_phone; ?>" class="regular-text" />
+		<input name="property_agent_phone" value="<?php _e( $property_agent_phone ); ?>" class="regular-text" />
 		<?php
 	}
 
-	function property_agent_logo(){
+	public function property_agent_logo() {
+
 		global $post;
 
-		$custom_post = get_post_custom($post->ID);
+		$custom_post = get_post_custom( $post->ID );
 		$property_agent_logo = $custom_post['property_agent_logo'][0];
 		?>
-		<input name="property_agent_logo" value="<?php echo $property_agent_logo; ?>" class="regular-text" />
+		<input name="property_agent_logo" value="<?php _e( $property_agent_logo ); ?>" class="regular-text" />
 		<?php
 	}
 
-	function save_details(){
+	public function save_details() {
+
 		global $post;
 
-		update_post_meta($post->ID, 'property_id', sanitize_text_field( $_POST['property_id']) );
-		update_post_meta($post->ID, 'property_url', sanitize_text_field( $_POST['property_url']) );
-		update_post_meta($post->ID, 'property_price', sanitize_text_field( $_POST['property_price']) );
-		update_post_meta($post->ID, 'property_agent', sanitize_text_field( $_POST['property_agent']) );
-		update_post_meta($post->ID, 'property_agent_phone', sanitize_text_field( $_POST['property_agent_phone']) );
-		update_post_meta($post->ID, 'property_agent_logo', sanitize_text_field( $_POST['property_agent_logo']) );
+		update_post_meta( $post->ID, 'property_id', sanitize_text_field( $_POST['property_id']) );
+		update_post_meta( $post->ID, 'property_url', sanitize_text_field( $_POST['property_url']) );
+		update_post_meta( $post->ID, 'property_price', sanitize_text_field( $_POST['property_price']) );
+		update_post_meta( $post->ID, 'property_agent', sanitize_text_field( $_POST['property_agent']) );
+		update_post_meta( $post->ID, 'property_agent_phone', sanitize_text_field( $_POST['property_agent_phone']) );
+		update_post_meta( $post->ID, 'property_agent_logo', sanitize_text_field( $_POST['property_agent_logo']) );
 	}
 
 
-	function action_links( $links ) {
+	public function action_links( $links ) {
+
         return array_merge( array(
             '<a href="' . admin_url( 'edit.php?post_type=property&page=import-options' ) . '">' . __( 'Import Options', 'properties' ) . '</a>',
             '<a href="' . esc_url( apply_filters( 'properties_url', 'http://www.alanwheeler.co.uk/', 'properties' ) ) . '" target="_blank">' . __( 'Website', 'properties' ) . '</a>',
         ), $links );
+
     }
 
+    
+    // Admin column functions
+	public function add_img_column( $columns ) {
+
+		if(get_post_type() == 'property' ) {
+			$columns = array( 
+				'cb' => $columns['cb'],
+				'img' => __( 'Image' ),
+				'title' => __( 'Property Address' ),
+				'price' => __( 'Asking Price' ),
+				'sale_type' => __( 'Sale Type' ),
+				'property_agent' => __( 'Marketed by' ),
+				'author' => __( 'Listed By' ),
+				'date' => __( 'Date Listed' )
+			);
+		} 
+ 
+		return $columns;
+
+	}
+
+	public function manage_img_column( $column_name, $post_id ) {
+
+		add_image_size( 'custom-size', 65, 65 );
+
+	    if( $column_name == 'img' ) {
+	        _e( the_post_thumbnail( 'custom-size' ) );
+	    }
+
+	    return $column_name;
+
+	}
+
+	public function manage_price_column( $column_name, $post_id ) {
+
+	    if( $column_name == 'price' ) {
+	        _e( '£' . number_format( get_post_meta( $post_id, 'property_price', true ) ) );
+	    }
+
+	    return $column_name;
+
+	}
+
+	public function manage_property_agent_column( $column_name, $post_id ) {
+
+	    if( $column_name == 'property_agent' ) {
+	        _e( get_post_meta( $post_id, 'property_agent', true ) );
+	    }
+
+	    return $column_name;
+	    
+	}
+
+	public function manage_property_sale_type_column( $column_name, $post_id ) {
+
+		if( $column_name == 'sale_type' ) {
+	        
+	    }
+
+	    return $column_name;
+
+	}
+
+	public function manage_sortable_columns( $sortable_columns ) {
+
+		$sortable_columns[ 'price' ] = 'price';
+		$sortable_columns[ 'property_agent' ] = 'property_agent';
+
+		return $sortable_columns;
+
+	}
+	// End Admin column functions
 
 }	
 

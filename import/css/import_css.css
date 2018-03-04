@@ -9,7 +9,10 @@
   Domain Path: lang
 */
 
-
+/* Admin styles */
+.column-img {
+  width: 100px;
+}
 
 .button-primary.disabled {
   opacity: 1 !important; 
