@@ -142,11 +142,3 @@ class Import {
 }-
 
 $import = Import::instance();
-
-/*
-update_post_meta($post->ID, 'property_id', sanitize_text_field( $_POST['property_id']) );
-update_post_meta($post->ID, 'property_url', sanitize_text_field( $_POST['property_url']) );
-update_post_meta($post->ID, 'property_price', sanitize_text_field( $_POST['property_price']) );
-update_post_meta($post->ID, 'property_agent', sanitize_text_field( $_POST['property_agent']) );
-update_post_meta($post->ID, 'property_agent_phone', sanitize_text_field( $_POST['property_agent_phone']) );
-*/
