@@ -1,16 +1,6 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-/*
-  Plugin Name: Import Zoopla UK Property Listings
-  Plugin URI: http://www.alanwheeler.co.uk
-  Description: Import listings from Zoopla.
-  Author: Alan Wheeler
-  Version: 1.00
-  Author URI: http://www.alanwheeler.co.uk
-  Text Domain: import-listings-zoopla
-  Domain Path: lang
-*/
 
 class Import {
 
@@ -29,26 +19,24 @@ class Import {
 	protected $properties;
 
 	public static function instance() {
-
         if ( is_null( self::$_instance ) ) {
             self::$_instance = new self();
         }
-
         return self::$_instance;
     }
 
 	public function __construct() {
+		add_action('wp_ajax_handle_ajax', array( $this, 'handle_ajax' ) );
 
-		add_action( 'wp_ajax_handle_ajax', array( $this, 'handle_ajax' ) );
-	
+		
 	}
 
-	public function handle_ajax() {
+	function handle_ajax() {
 
-		if ( !function_exists( 'media_handle_upload' ) ) {
-			require_once( ABSPATH . "wp-admin" . '/includes/image.php' );
-			require_once( ABSPATH . "wp-admin" . '/includes/file.php' );
-			require_once( ABSPATH . "wp-admin" . '/includes/media.php' );
+		if ( !function_exists('media_handle_upload') ) {
+			require_once(ABSPATH . "wp-admin" . '/includes/image.php');
+			require_once(ABSPATH . "wp-admin" . '/includes/file.php');
+			require_once(ABSPATH . "wp-admin" . '/includes/media.php');
 		}
 
 		$count = 0;
@@ -63,7 +51,7 @@ class Import {
 		$this->import_option_number = get_option( 'import_option_number' );
 		$this->import_option_sale_type = get_option( 'import_option_sale_type' );
 
-		$xml = simplexml_load_file( 'http://api.zoopla.co.uk/api/v1/property_listings.xml?postcode='. $this->import_option_postcode 
+		$xml = simplexml_load_file('http://api.zoopla.co.uk/api/v1/property_listings.xml?postcode='. $this->import_option_postcode 
 			. '&page_size=' . $this->import_option_number 
 			. '&radius=' . $this->import_option_radius 
 			. '&listing_status=' . $this->import_option_sale_type 
@@ -71,9 +59,9 @@ class Import {
 			);
 
 
-		if ( $xml !== FALSE ) {
+		if ($xml !== FALSE) {
 
-			foreach ( $xml->listing as $property ) {
+			foreach ($xml->listing as $property) {
 
 				$this->properties[] = $property;
 		                  
@@ -133,10 +121,10 @@ class Import {
 
 			    set_post_thumbnail($post_id, $id);
 
-			    _e( 'Imported property: ' . $property->listing_id . '<br />' );
+			    echo 'Imported property: ' . $property->listing_id . '<br />';
 
 			}else{
-				_e( $property->listing_id . ' This property has already been imported<br />' );
+				echo $property->listing_id . ' This property has already been imported<br />';
 			}
 
 
@@ -151,6 +139,6 @@ class Import {
 		//var_dump($this->properties);
 		wp_die();
 	}
-}
+}-
 
 $import = Import::instance();
