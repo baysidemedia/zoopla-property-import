@@ -43,5 +43,3 @@ jQuery(window).load(function(){
 	});
 	
 });
-
-//tcpb336jpj2gkqvd39e4hkuu
